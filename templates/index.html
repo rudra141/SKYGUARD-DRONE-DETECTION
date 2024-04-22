@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKYGUARD</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-image: linear-gradient(to bottom, #4CAF50, #2980B9);
+            font-family: 'Arial', sans-serif;
+        }
+
+        #header {
+            text-align: center;
+            color: #fff;
+            font-size: 2.5em;
+            padding: 20px 0;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        #container {
+            display: flex;
+            justify-content: space-between;
+            height: 80%;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        #video-container, #chat-container {
+            flex: 1;
+            height: 100%;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #video-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        #chat {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            max-height: 70%;
+            overflow-y: scroll;
+        }
+
+        #message {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #D32F2F;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #B71C1C;
+        }
+
+        li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            color: #D32F2F;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        SKYGUARD
+    </div>
+    <div id="container">
+        <div id="video-container">
+            <h2>Real-Time Monitoring</h2>
+            <img id="live-feed" src="{{ url_for('video_feed') }}" alt="Live Feed">
+        </div>
+        <div id="chat-container">
+            <h2>Live Chat</h2>
+            <ul id="chat">
+                <!-- Chat messages will be displayed here -->
+            </ul>
+            <input type="text" id="message" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('connect', function() {
+            console.log('Connected');
+        });
+
+        socket.on('alert', function(msg) {
+            alert(msg);
+            $('#chat').append('<li>' + msg + '</li>');
+        });
+
+        function sendMessage() {
+            var message = $('#message').val();
+            if (message.trim() !== '') {
+                socket.emit('message', message);
+                $('#chat').append('<li>You: ' + message + '</li>');
+                $('#message').val('');
+            }
+        }
+
+        // Scroll to the bottom of the chat
+        function scrollToBottom() {
+            var chat = document.getElementById('chat');
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // Scroll to bottom when new message is added
+        socket.on('message', function() {
+            scrollToBottom();
+        });
+
+        // Initial scroll to bottom
+        scrollToBottom();
+    </script>
+</body>
+</html>
